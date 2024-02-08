@@ -1,0 +1,69 @@
+version: '3'
+
+services:
+  attacker_router:
+    image: alpine
+    networks:
+      network1_test:
+        ipv4_address: 172.16.0.254
+      router_router:
+        ipv4_address: 172.22.0.254
+    command: sleep infinity
+    cap_add:
+      - NET_ADMIN
+    restart: always
+
+  victim_router:
+    image: alpine
+    networks:
+      network2_test:
+        ipv4_address: 172.30.0.254
+      router_router:
+        ipv4_address: 172.22.0.253
+    command: sleep infinity
+    cap_add:
+      - NET_ADMIN
+    restart: always
+
+  attacker:
+    build:
+      context: .
+      dockerfile: ./attacker/Dockerfile
+    image: kalilinux/kali-rolling
+    networks:
+      network1_test:
+        ipv4_address: 172.16.0.2
+    command: sleep infinity
+    cap_add:
+      - NET_ADMIN
+
+  victim:
+    image: metasploitframework/metasploit-framework
+    networks:
+      network2_test:
+        ipv4_address: 172.30.0.2
+    command: sleep infinity
+    cap_add:
+      - NET_ADMIN
+
+networks:
+  network1_test:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.16.0.0/16
+
+  network2_test:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.30.0.0/16
+
+  router_router:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.22.0.0/16
